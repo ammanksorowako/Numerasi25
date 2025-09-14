@@ -79,7 +79,7 @@
              <img src="https://smp.labschoolkebayoran.sch.id/wp-content/uploads/2023/10/C-G-L.png" alt="Logo Sekolah" class="w-56 mx-auto mb-4">
             <div>
                  <h1 class="font-poppins text-2xl font-bold text-gray-800 dark:text-white text-center">Level <span id="level-display">1</span></h1>
-                 <p id="timer" class="text-lg font-bold text-red-500 text-center">07:00</p>
+                 <p id="timer" class="text-lg font-bold text-red-500 text-center">05:00</p>
             </div>
         </header>
         
@@ -152,7 +152,7 @@
         let acceptingAnswers = true;
         let currentLevel = 1;
         const MAX_LEVEL = 3;
-        const TIME_PER_LEVEL = 420; // 7 menit
+        const TIME_PER_LEVEL = 300; // 5 menit
         let timeLeft = TIME_PER_LEVEL;
         let timerInterval;
         let player = { name: '', class: '', scores: [0, 0, 0] };
@@ -176,8 +176,7 @@
 
             if (type === 1) { // Integer questions (PENGGANTI PECAHAN)
                 const maxNum = level * 10;
-                let num1 = getRandomInt(-maxNum, maxNum);
-                let num2 = getRandomInt(-maxNum, maxNum);
+                let num1, num2;
                 
                 const operators = level === 1 ? ['+', '-'] : ['+', '-', '×'];
                 if (level === 3) operators.push('÷');
@@ -186,27 +185,27 @@
                 let answer;
                 
                 if (operator === '+') {
+                    num1 = getRandomInt(-maxNum, maxNum);
+                    num2 = getRandomInt(-maxNum, maxNum);
                     answer = num1 + num2;
                 } else if (operator === '-') {
+                    num1 = getRandomInt(-maxNum, maxNum);
+                    num2 = getRandomInt(-maxNum, maxNum);
                     answer = num1 - num2;
                 } else if (operator === '×') {
-                    // Perkecil angka untuk perkalian agar tidak terlalu besar
-                    num1 = getRandomInt(-maxNum / 2, maxNum / 2);
-                    num2 = getRandomInt(-10, 10);
+                    num1 = getRandomInt(Math.round(-maxNum / 2), Math.round(maxNum / 2));
+                    num2 = getRandomInt(-12, 12);
                     answer = num1 * num2;
-                } else { // Division
-                    // Pastikan hasil bagi adalah bilangan bulat
-                    const num2_options = [];
-                    for(let i=1; i<=Math.abs(num1); i++){
-                        if(num1 % i === 0) num2_options.push(i, -i);
-                    }
-                    if(num2_options.length === 0) num2_options.push(1,-1);
-                    num2 = num2_options[getRandomInt(0, num2_options.length - 1)];
-                    if(num2 === 0) num2 = 1; // Hindari pembagian dengan nol
-                    answer = num1 / num2;
+                } else { // Division (REVISED LOGIC)
+                    let divisor = getRandomInt(-15, 15);
+                    if (divisor === 0) divisor = 1; 
+                    num2 = divisor;
+                    
+                    const multiplier = getRandomInt(-15, 15);
+                    num1 = num2 * multiplier;
+                    answer = multiplier;
                 }
                 
-                // Format angka negatif dengan kurung untuk kejelasan
                 const num1Text = num1 < 0 ? `(${num1})` : num1;
                 const num2Text = num2 < 0 ? `(${num2})` : num2;
                 
@@ -215,7 +214,7 @@
                 
                 const options = [question.answer];
                 while (options.length < 4) {
-                    const offset = getRandomInt(-10, 10) || 1; // Pastikan offset bukan 0
+                    const offset = getRandomInt(-10, 10) || 1; 
                     const wrongAnswer = (answer + offset).toString();
                     if (!options.includes(wrongAnswer)) {
                         options.push(wrongAnswer);
@@ -251,15 +250,28 @@
                 
                 question.text = `${dec1} ${operator} ${dec2}`;
                 question.answer = answer.toString();
-
+                
+                // --- PERBAIKAN UTAMA UNTUK MENCEGAH FREEZE ---
                 const options = [question.answer];
-                 while (options.length < 4) {
-                    const offset = (Math.random() * level - level / 2);
-                    const answerDecimalPlaces = (answer.toString().split('.')[1] || []).length;
-                    let wrongAnswer = parseFloat((answer + offset).toFixed(answerDecimalPlaces));
-                    
-                    if (wrongAnswer !== answer && !options.includes(wrongAnswer.toString())) {
-                        options.push(wrongAnswer.toString());
+                const answerDecimalPlaces = (answer.toString().split('.')[1] || []).length;
+                const multiplier = Math.pow(10, answerDecimalPlaces);
+                const answerAsInt = Math.round(answer * multiplier);
+
+                while (options.length < 4) {
+                    const offset = getRandomInt(-15 * level, 15 * level) || 1; // Offset sebagai integer
+                    const wrongAnswerAsInt = answerAsInt + offset;
+
+                    if (wrongAnswerAsInt !== answerAsInt) {
+                        // Perlu penanganan khusus untuk .toFixed agar tidak menambah angka 0 yang tidak perlu
+                        const wrongAnswerFloat = wrongAnswerAsInt / multiplier;
+                        const wrongAnswerString = wrongAnswerFloat.toFixed(answerDecimalPlaces);
+                        
+                        // Hapus angka 0 di belakang koma yang tidak perlu jika ada
+                        const finalWrongAnswer = parseFloat(wrongAnswerString).toString();
+
+                        if (!options.includes(finalWrongAnswer)) {
+                            options.push(finalWrongAnswer);
+                        }
                     }
                 }
                 question.options = shuffleArray(options);
@@ -340,7 +352,7 @@
             levelDisplay.textContent = currentLevel;
             
             timeLeft = TIME_PER_LEVEL;
-            timerDisplay.textContent = '07:00'; // Set display explicitly at start
+            timerDisplay.textContent = '05:00'; // Set display explicitly at start
             timerInterval = setInterval(updateTimer, 1000);
             
             displayQuestion();
