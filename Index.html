@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Explorer: 3 Level Tantangan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
+        }
+        .font-poppins {
+            font-family: 'Poppins', sans-serif;
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.5s ease-in-out;
+        }
+        .answer-btn {
+            transition: all 0.3s ease;
+        }
+        .answer-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.1);
+        }
+        .correct {
+            background-image: linear-gradient(to right, #22c55e, #16a34a);
+            color: white;
+            transform: scale(1.05);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .incorrect {
+            background-image: linear-gradient(to right, #ef4444, #dc2626);
+            color: white;
+            animation: shake 0.5s;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-green-100 to-teal-100 dark:from-gray-800 dark:to-green-900 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Home Screen -->
+    <div id="home-screen" class="card w-full max-w-lg p-6 md:p-8 text-center">
+        <img src="https://smp.labschoolkebayoran.sch.id/wp-content/uploads/2023/10/C-G-L.png" alt="Logo Sekolah" class="w-full max-w-sm mx-auto mb-6">
+        <h1 class="font-poppins text-3xl md:text-4xl font-bold text-gray-800 dark:text-white">Math Explorer</h1>
+        <p class="text-gray-500 dark:text-gray-400 mt-1 mb-6">Selamat Datang, Petualang Matematika!</p>
+        <div class="space-y-4 text-left">
+            <div>
+                <label for="name" class="block mb-1 text-sm font-medium text-gray-700">Nama</label>
+                <input type="text" id="name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Masukkan namamu">
+                <p id="name-error" class="text-red-500 text-xs mt-1 h-4"></p>
+            </div>
+            <div>
+                <label for="class" class="block mb-1 text-sm font-medium text-gray-700">Kelas</label>
+                <input type="text" id="class" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: 7A">
+            </div>
+        </div>
+        <button id="start-button" class="mt-8 w-full py-3 px-6 bg-gradient-to-r from-teal-400 to-cyan-500 hover:from-teal-500 hover:to-cyan-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">Mulai Petualangan</button>
+    </div>
+
+    <!-- Game Container -->
+    <div id="game-container" class="card w-full max-w-lg p-6 md:p-8 text-center hidden">
+        <header class="flex flex-col items-center mb-4">
+             <img src="https://smp.labschoolkebayoran.sch.id/wp-content/uploads/2023/10/C-G-L.png" alt="Logo Sekolah" class="w-56 mx-auto mb-4">
+            <div>
+                 <h1 class="font-poppins text-2xl font-bold text-gray-800 dark:text-white text-center">Level <span id="level-display">1</span></h1>
+                 <p id="timer" class="text-lg font-bold text-red-500 text-center">07:00</p>
+            </div>
+        </header>
+        
+        <div class="flex justify-between items-center bg-gray-100 dark:bg-gray-800 rounded-xl p-4 mb-6">
+            <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">SKOR LEVEL INI</p>
+                <p id="score" class="text-2xl font-bold text-blue-600 dark:text-blue-400">0</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500 dark:text-gray-400">SOAL #</p>
+                <p id="question-number" class="text-2xl font-bold text-gray-800 dark:text-white">1</p>
+            </div>
+        </div>
+
+        <div id="question-area" class="bg-blue-50 dark:bg-gray-700 p-6 rounded-xl mb-6 min-h-[100px] flex items-center justify-center">
+            <p id="question-text" class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white"></p>
+        </div>
+
+        <div id="answers-container" class="grid grid-cols-2 gap-4"></div>
+        <div id="next-button-container" class="mt-6 h-12"></div>
+    </div>
+    
+    <!-- Score Screen -->
+    <div id="score-screen" class="card w-full max-w-lg p-6 md:p-8 text-center hidden">
+         <img src="https://smp.labschoolkebayoran.sch.id/wp-content/uploads/2023/10/C-G-L.png" alt="Logo Sekolah" class="w-full max-w-sm mx-auto mb-6">
+        <h1 class="font-poppins text-3xl font-bold text-gray-800">Petualangan Selesai!</h1>
+        <p class="text-gray-600 mt-2">Kerja bagus, <span id="final-name" class="font-bold"></span>!</p>
+        <p class="text-gray-500 mb-6">Kelas: <span id="final-class" class="font-bold"></span></p>
+        
+        <div class="bg-gray-100 rounded-xl p-6 space-y-4">
+            <div class="flex justify-between items-center text-lg">
+                <p class="text-gray-700">Skor Level 1:</p>
+                <p id="score-level-1" class="font-bold text-blue-600 text-2xl">0</p>
+            </div>
+             <div class="flex justify-between items-center text-lg">
+                <p class="text-gray-700">Skor Level 2:</p>
+                <p id="score-level-2" class="font-bold text-blue-600 text-2xl">0</p>
+            </div>
+             <div class="flex justify-between items-center text-lg">
+                <p class="text-gray-700">Skor Level 3:</p>
+                <p id="score-level-3" class="font-bold text-blue-600 text-2xl">0</p>
+            </div>
+        </div>
+        
+        <button id="play-again-button" class="mt-8 w-full py-3 px-6 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">Main Lagi</button>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const homeScreen = document.getElementById('home-screen');
+        const gameContainer = document.getElementById('game-container');
+        const scoreScreen = document.getElementById('score-screen');
+        const startButton = document.getElementById('start-button');
+        const playAgainButton = document.getElementById('play-again-button');
+        const nameInput = document.getElementById('name');
+        const classInput = document.getElementById('class');
+        
+        const scoreEl = document.getElementById('score');
+        const questionNumberEl = document.getElementById('question-number');
+        const questionTextEl = document.getElementById('question-text');
+        const answersContainer = document.getElementById('answers-container');
+        const nextButtonContainer = document.getElementById('next-button-container');
+        const levelDisplay = document.getElementById('level-display');
+        const timerDisplay = document.getElementById('timer');
+
+        // --- Game State ---
+        let score = 0;
+        let questionNumber = 1;
+        let currentQuestion = {};
+        let acceptingAnswers = true;
+        let currentLevel = 1;
+        const MAX_LEVEL = 3;
+        const TIME_PER_LEVEL = 420; // 7 menit
+        let timeLeft = TIME_PER_LEVEL;
+        let timerInterval;
+        let player = { name: '', class: '', scores: [0, 0, 0] };
+
+        // --- Helper Functions ---
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // --- Question Generation ---
+        function generateQuestion(level) {
+            let question = {};
+            const type = getRandomInt(1, 2); 
+
+            if (type === 1) { // Integer questions (PENGGANTI PECAHAN)
+                const maxNum = level * 10;
+                let num1 = getRandomInt(-maxNum, maxNum);
+                let num2 = getRandomInt(-maxNum, maxNum);
+                
+                const operators = level === 1 ? ['+', '-'] : ['+', '-', '×'];
+                if (level === 3) operators.push('÷');
+                const operator = operators[getRandomInt(0, operators.length - 1)];
+
+                let answer;
+                
+                if (operator === '+') {
+                    answer = num1 + num2;
+                } else if (operator === '-') {
+                    answer = num1 - num2;
+                } else if (operator === '×') {
+                    // Perkecil angka untuk perkalian agar tidak terlalu besar
+                    num1 = getRandomInt(-maxNum / 2, maxNum / 2);
+                    num2 = getRandomInt(-10, 10);
+                    answer = num1 * num2;
+                } else { // Division
+                    // Pastikan hasil bagi adalah bilangan bulat
+                    const num2_options = [];
+                    for(let i=1; i<=Math.abs(num1); i++){
+                        if(num1 % i === 0) num2_options.push(i, -i);
+                    }
+                    if(num2_options.length === 0) num2_options.push(1,-1);
+                    num2 = num2_options[getRandomInt(0, num2_options.length - 1)];
+                    if(num2 === 0) num2 = 1; // Hindari pembagian dengan nol
+                    answer = num1 / num2;
+                }
+                
+                // Format angka negatif dengan kurung untuk kejelasan
+                const num1Text = num1 < 0 ? `(${num1})` : num1;
+                const num2Text = num2 < 0 ? `(${num2})` : num2;
+                
+                question.text = `${num1Text} ${operator} ${num2Text}`;
+                question.answer = answer.toString();
+                
+                const options = [question.answer];
+                while (options.length < 4) {
+                    const offset = getRandomInt(-10, 10) || 1; // Pastikan offset bukan 0
+                    const wrongAnswer = (answer + offset).toString();
+                    if (!options.includes(wrongAnswer)) {
+                        options.push(wrongAnswer);
+                    }
+                }
+                question.options = shuffleArray(options);
+
+            } else { // Decimal questions
+                const decPlaces = level === 1 ? 1 : 2;
+                let dec1 = parseFloat((Math.random() * (5 * level)).toFixed(decPlaces));
+                let dec2 = parseFloat((Math.random() * (3 * level)).toFixed(decPlaces));
+                const operators = level === 1 ? ['+', '-'] : ['+', '-', '×'];
+                const operator = operators[getRandomInt(0, operators.length - 1)];
+
+                let rawAnswer;
+                if (operator === '+') {
+                    rawAnswer = dec1 + dec2;
+                } else if (operator === '-') {
+                    if (dec1 < dec2) [dec1, dec2] = [dec2, dec1];
+                    rawAnswer = dec1 - dec2;
+                } else {
+                    rawAnswer = dec1 * dec2;
+                }
+                
+                rawAnswer = Number(rawAnswer.toPrecision(15));
+                
+                let answer;
+                if (operator === '×') {
+                    answer = parseFloat(rawAnswer.toFixed(decPlaces * 2));
+                } else {
+                    answer = parseFloat(rawAnswer.toFixed(decPlaces));
+                }
+                
+                question.text = `${dec1} ${operator} ${dec2}`;
+                question.answer = answer.toString();
+
+                const options = [question.answer];
+                 while (options.length < 4) {
+                    const offset = (Math.random() * level - level / 2);
+                    const answerDecimalPlaces = (answer.toString().split('.')[1] || []).length;
+                    let wrongAnswer = parseFloat((answer + offset).toFixed(answerDecimalPlaces));
+                    
+                    if (wrongAnswer !== answer && !options.includes(wrongAnswer.toString())) {
+                        options.push(wrongAnswer.toString());
+                    }
+                }
+                question.options = shuffleArray(options);
+            }
+            return question;
+        }
+
+        // --- Game Flow & UI ---
+        function displayQuestion() {
+            acceptingAnswers = true;
+            currentQuestion = generateQuestion(currentLevel);
+            questionTextEl.innerHTML = currentQuestion.text;
+            answersContainer.innerHTML = '';
+            
+            currentQuestion.options.forEach(option => {
+                const button = document.createElement('button');
+                button.innerHTML = option;
+                button.classList.add('answer-btn', 'w-full', 'p-4', 'rounded-xl', 'text-xl', 'font-bold', 'text-gray-800', 'dark:text-white', 'bg-white/60', 'dark:bg-gray-700/60', 'backdrop-blur-sm', 'shadow-md', 'hover:shadow-lg', 'transform', 'hover:-translate-y-1', 'transition-all', 'duration-200');
+                button.addEventListener('click', handleAnswerClick);
+                answersContainer.appendChild(button);
+            });
+            nextButtonContainer.innerHTML = '';
+        }
+
+        function handleAnswerClick(e) {
+            if (!acceptingAnswers) return;
+            acceptingAnswers = false;
+
+            const selectedButton = e.currentTarget;
+            const isCorrect = selectedButton.innerHTML === currentQuestion.answer;
+
+            if (isCorrect) {
+                score++;
+                scoreEl.textContent = score;
+                selectedButton.classList.add('correct');
+            } else {
+                selectedButton.classList.add('incorrect');
+                Array.from(answersContainer.children).forEach(btn => {
+                    if (btn.innerHTML === currentQuestion.answer) btn.classList.add('correct');
+                });
+            }
+            
+            setTimeout(() => {
+                questionNumber++;
+                questionNumberEl.textContent = questionNumber;
+                displayQuestion();
+            }, 1200);
+        }
+        
+        function updateTimer() {
+            timeLeft--;
+            const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const seconds = (timeLeft % 60).toString().padStart(2, '0');
+            timerDisplay.textContent = `${minutes}:${seconds}`;
+
+            if (timeLeft <= 0) {
+                handleLevelEnd();
+            }
+        }
+
+        function handleLevelEnd() {
+            clearInterval(timerInterval);
+            player.scores[currentLevel - 1] = score;
+
+            if (currentLevel < MAX_LEVEL) {
+                currentLevel++;
+                startLevel();
+            } else {
+                showFinalScore();
+            }
+        }
+
+        function startLevel() {
+            score = 0;
+            questionNumber = 1;
+            scoreEl.textContent = '0';
+            questionNumberEl.textContent = '1';
+            levelDisplay.textContent = currentLevel;
+            
+            timeLeft = TIME_PER_LEVEL;
+            timerDisplay.textContent = '07:00'; // Set display explicitly at start
+            timerInterval = setInterval(updateTimer, 1000);
+            
+            displayQuestion();
+        }
+        
+        function showFinalScore() {
+            gameContainer.classList.add('hidden');
+            scoreScreen.classList.remove('hidden');
+
+            document.getElementById('final-name').textContent = player.name;
+            document.getElementById('final-class').textContent = player.class;
+            document.getElementById('score-level-1').textContent = player.scores[0];
+            document.getElementById('score-level-2').textContent = player.scores[1];
+            document.getElementById('score-level-3').textContent = player.scores[2];
+        }
+
+        function resetGame() {
+            score = 0;
+            questionNumber = 1;
+            currentLevel = 1;
+            player = { name: '', class: '', scores: [0, 0, 0] };
+            clearInterval(timerInterval);
+            
+            nameInput.value = '';
+            classInput.value = '';
+
+            scoreScreen.classList.add('hidden');
+            gameContainer.classList.add('hidden');
+            homeScreen.classList.remove('hidden');
+        }
+
+        // --- Event Listeners ---
+        startButton.addEventListener('click', () => {
+            const nameErrorEl = document.getElementById('name-error');
+            const nameValue = nameInput.value.trim();
+
+            if (nameValue === '') {
+                nameErrorEl.textContent = 'Nama tidak boleh kosong!';
+                nameInput.focus();
+                setTimeout(() => { nameErrorEl.textContent = ''; }, 3000);
+                return;
+            }
+            
+            nameErrorEl.textContent = '';
+            player.name = nameValue;
+            player.class = classInput.value.trim() || 'Tidak diketahui';
+
+            homeScreen.classList.add('hidden');
+            gameContainer.classList.remove('hidden');
+            startLevel();
+        });
+
+        playAgainButton.addEventListener('click', resetGame);
+
+    </script>
+</body>
+</html>
+
